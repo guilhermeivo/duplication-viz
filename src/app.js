@@ -1,0 +1,212 @@
+import { status, StatusType } from "./status.js"
+import { packageHierarchy, packageImports } from "./data.js"
+import getRendererClass from "./renderers/renderer.js"
+
+export const formatMethods = {
+    RADIAL: (context, config) => {
+        const beta = config.RADIAL_BETA || 0.90
+        return d3.lineRadial()
+            .curve(d3.curveBundle.beta(beta))
+            .radius(d => d.y)
+            .angle(d => d.x / 180 * Math.PI)
+            .context(context)
+    },
+    SQUARE: (context, config) => {
+        const squareRadius = config.SQUARE_RADIUS || 0
+        function roundedSquareRadius(angle, size, radius) {
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+
+            const ax = Math.abs(cos);
+            const ay = Math.abs(sin);
+
+            radius = Math.max(0, Math.min(radius, size));
+
+            if (radius === 0) {
+                return size / Math.max(ax, ay);
+            }
+
+            const corner = size - radius;
+
+            if (ax >= ay) {
+                const t = size / ax;
+
+                if (t * ay <= corner) {
+                    return t;
+                }
+            } else {
+                const t = size / ay;
+
+                if (t * ax <= corner) {
+                    return t;
+                }
+            }
+
+            const a = corner;
+
+            // (t*cos-a)^2 + (t*sin-a)^2 = radius^2
+
+            const b = -2 * a * (ax + ay);
+
+            const c =
+                2 * a * a -
+                radius * radius;
+
+            const discriminant =
+                b * b - 4 * c;
+
+            return (-b + Math.sqrt(discriminant)) / 2;
+        }
+
+        function polarToRoundedSquare(x, y) {
+            const angle = x / 180 * Math.PI;
+
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+
+            const halfSquare = config.INNER_RADIUS;
+
+            const boundary = roundedSquareRadius(
+                angle,
+                halfSquare,
+                squareRadius
+            );
+
+            const scale = boundary / halfSquare;
+
+            return {
+                x: y * cos * scale,
+                y: y * sin * scale
+            };
+        }
+
+
+        return d3.line()
+            .curve(d3.curveBundle.beta(0.85))
+            .x(d => polarToRoundedSquare(d.x, d.y).x)
+            .y(d => polarToRoundedSquare(d.x, d.y).y)
+            .context(context);
+    }
+}
+
+const calcLinks = ({ tree, config }) => {
+    const cluster = d3.cluster()
+        .size([360, config.INNER_RADIUS]);
+
+    const maxDuplicatedLines = Math.max(...tree.leaves().map(l => l.data.size || 0));
+
+    cluster(tree);
+    const links = packageImports(tree.leaves());
+
+    return { links, maxDuplicatedLines };
+}
+
+export function renderVisualization(canvas, config, data) {
+    const label = "Render Visualization";
+    console.time(label);
+
+    const Renderer = getRendererClass(config.CONTEXT_TYPE);
+
+    const renderer = new Renderer(canvas);
+    renderer.init(config);
+
+    status.set(`Reading ${data.length} records...`);
+
+    const root = packageHierarchy(data)
+        .sum(function(d) { return d.size; })
+        .sort(function(a, b) { 
+            const nameA = a.data.file || a.data.key || "";
+            const nameB = b.data.file || b.data.key || "";
+            return d3.ascending(nameA, nameB); 
+        });
+
+    let { links, maxDuplicatedLines } = calcLinks({ tree: root, config });
+
+    if (!Object.keys(formatMethods).includes(config.METHOD.toUpperCase())) {
+        status.set("Unidentified geometry rendering method", { type: StatusType.ERROR });
+        return false;
+    }
+
+    const collector = Renderer.collector(renderer, config);
+    const line = formatMethods[config.METHOD.toUpperCase()](collector, config);
+
+    if (config.SHOW_FOLDERS && renderer.halfExtent) {
+        let overlay = document.querySelector("#overlay");
+        overlay.create({
+            canvas,
+            onPaint: async (props) => {
+                console.time(label);
+
+                status.loading();
+
+                await new Promise(r => setTimeout(r, 100));
+
+                ({ links, maxDuplicatedLines } = calcLinks({ tree: overlay.zoomed || root, config }));
+                paint(props);
+                overlay.clean();
+                overlay.draw({
+                    root: overlay.zoomed || root,
+                    config,
+                    halfExtent: renderer.halfExtent,
+                });
+                ({ links, maxDuplicatedLines } = calcLinks({ tree: root, config }));
+
+                status.loadingEnd();
+            }
+        });
+        overlay.draw({
+            root: overlay.zoomed || root,
+            config,
+            halfExtent: renderer.halfExtent,
+        });
+    }
+
+    function paint({ selected, isZoomed } = { }) {
+        if (isZoomed)
+            renderer.resize();
+
+        renderer.clear();
+        collector.beginPath();
+
+        const dim = config.DIM_ALPHA ?? 0.0;
+
+        const inside = selected ? new Set(selected.leaves()) : null;
+
+        const touches = d => inside.has(d.path[0]) || inside.has(d.path[d.path.length - 1]);
+
+        const k = inside ? dim : 1.0;
+
+        links.forEach(d => {
+            if (inside && touches(d)) return;
+
+            renderer.draw(line, d, {
+                size: d.size,
+                alphaMultiplier: k,
+                maxSize: maxDuplicatedLines
+            });
+        });
+
+        if (inside) {
+            links.forEach(d => {
+                if (!touches(d)) return;
+
+                renderer.draw(line, d, {
+                    size: d.size,
+                    alphaMultiplier: k,
+                    maxSize: maxDuplicatedLines
+                });
+            });
+        }
+
+        collector.closePath();
+        renderer.render();
+
+        console.timeEnd(label);
+    }
+
+    paint();
+
+    status.disable();
+
+    return true;
+}

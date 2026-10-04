@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Edge Bundling</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="./src/overlay.js"></script>
+</head>
+<body>
+
+<div id="container">
+    <div id="status"></div>
+
+    <canvas id="canvas"></canvas>
+
+    <folder-overlay id="overlay"></folder-overlay>
+</div>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+
+<script type="module">
+import { status, StatusType } from "./src/status.js"
+import { renderVisualization } from "./src/app.js"
+
+const config = {
+    SCALE: 2,
+
+    JSON_FILE: "examples/linus-linux/root.json",
+    SHOW_FOLDERS: true,
+    METHOD: "RADIAL",
+    SQUARE_RADIUS: 16,
+    DEPTH: -1,
+    START_COLOR: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
+    END_COLOR: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
+    WIDTH: window.innerWidth,
+    HEIGHT: window.innerHeight,
+    PADDING: 120,
+
+    LINE_WIDTH: 0.05,
+    SEGMENTS: 16,
+
+    ARC_WIDTH: 1,
+    MIN_ARC_LENGTH: 2,
+    DIM_ALPHA: 0.0,
+
+    CONTEXT_TYPE: "webgl2"
+}
+
+const diameter = Math.min(config.WIDTH, config.HEIGHT);
+
+config.INNER_RADIUS = (diameter / 2) - config.PADDING;
+
+const canvas = document.querySelector("canvas");
+canvas.width = diameter;
+canvas.height = diameter;
+
+status.init({
+    body: document.body,
+    element: document.querySelector("#status")
+});
+
+try {
+    status.set("Loading...");
+    status.loading();
+
+    const response = await fetch(config.JSON_FILE);
+
+    if (!response.ok) {
+        status.set(error, { type: StatusType.ERROR });
+        throw error;
+    }
+
+    const json = await response.json();
+    const data = json.data;
+    renderVisualization(canvas, config, data);
+
+    status.loadingEnd();
+} catch (error) {
+    status.set(error, { type: StatusType.ERROR });
+}
+</script>
+</body>
+</html>

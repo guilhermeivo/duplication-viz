@@ -1,0 +1,13 @@
+{
+  "name": "hierarchical-edge-bundling",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "export.js",
+  "scripts": {
+    "run": "node export.js"
+  },
+  "dependencies": {
+    "canvas": "^3.2.3",
+    "d3": "^7.9.0"
+  }
+}

@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#container {
+    position: relative;
+    display: inline-block;
+}
+
+canvas {
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+
+    .arc {
+        fill: #000;
+        pointer-events: none;
+    }
+
+    .hit {
+        fill: transparent;
+        pointer-events: all;
+        cursor: pointer;
+    }
+
+    .label {
+        font-family: serif;
+        fill: #000;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .folder:hover,
+    .folder.selected {
+        .arc {
+            fill: rgba(8, 46, 107);
+        }
+        .label {
+            fill: rgba(8, 46, 107);
+        }
+    }
+
+    .folder.selected .label {
+        font-weight: bold;
+    }
+}
+
+.tooltip {
+    position: fixed;
+    z-index: 20;
+    display: none;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid #ccc;
+    font: 12px monospace;
+    pointer-events: none;
+}
+
+#status {
+    position: absolute;
+    z-index: 10;
+    left: 10px;
+    top: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #ccc;
+    font: 12px monospace;
+    white-space: pre;
+
+    &.error {
+        border: 1px solid #f38888;
+    }
+}

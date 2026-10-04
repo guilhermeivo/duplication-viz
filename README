@@ -1,0 +1,49 @@
+duplication-viz
+===============
+
+Between which parts of the project is this code duplicated?
+
+Running
+-------
+
+Generate the image:
+
+    node export.js
+
+Run the WebGL2 visualization:
+
+    npx serve .
+
+Then open the URL provided by serve in your browser.
+
+References and sources used in this implementation
+--------------------------------------------------
+
+[1] Hierarchical Edge Bundling
+    Mike Bostock
+    https://gist.github.com/mbostock/1044242
+    License: GNU General Public License v3.0 (GPL-3.0)
+
+    The original D3/SVG rendering was replaced with a custom WebGL2 renderer,
+    and the hierarchy was adapted for file-based data and duplicated
+    relationships.
+
+[2] Hierarchical edge bundling
+    from Data to Viz
+    https://www.data-to-viz.com/graph/edge_bundling.html
+
+[3] Hierarchical edge bundling
+    D3.js Graph Gallery
+    https://d3-graph-gallery.com/bundle
+
+[4] Hierarchical Edge Bundles: Visualization of Adjacency Relations in
+    Hierarchical Data
+    Danny Holten
+    IEEE Transactions on Visualization and Computer Graphics, vol. 12, no. 5,
+    2006
+    https://ieeexplore.ieee.org/document/4015425
+
+[5] Well-formed eigenfactor
+    Moritz Stefaner, Martin Rosvall, Jevin West and Carl Bergstrom
+    Bergstrom Lab, University of Washington, 2009
+    https://truth-and-beauty.net/projects/well-formed-eigenfactor
