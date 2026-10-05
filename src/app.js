@@ -96,9 +96,9 @@ const calcLinks = ({ tree, config }) => {
     const maxDuplicatedLines = Math.max(...tree.leaves().map(l => l.data.size || 0));
 
     cluster(tree);
-    const links = packageImports(tree.leaves());
+    const { duplicated: links, bufferSize, maxPathLength } = packageImports(tree.leaves());
 
-    return { links, maxDuplicatedLines };
+    return { links, bufferSize, maxDuplicatedLines, maxPathLength };
 }
 
 export function renderVisualization(canvas, config, data) {
@@ -106,9 +106,6 @@ export function renderVisualization(canvas, config, data) {
     console.time(label);
 
     const Renderer = getRendererClass(config.CONTEXT_TYPE);
-
-    const renderer = new Renderer(canvas);
-    renderer.init(config);
 
     status.set(`Reading ${data.length} records...`);
 
@@ -120,15 +117,21 @@ export function renderVisualization(canvas, config, data) {
             return d3.ascending(nameA, nameB); 
         });
 
-    let { links, maxDuplicatedLines } = calcLinks({ tree: root, config });
+    let { links, maxDuplicatedLines, bufferSize, maxPathLength } = calcLinks({ tree: root, config });
 
     if (!Object.keys(formatMethods).includes(config.METHOD.toUpperCase())) {
         status.set("Unidentified geometry rendering method", { type: StatusType.ERROR });
         return false;
     }
 
+    const renderer = new Renderer(canvas);
+    renderer.init(config);
+
     const collector = Renderer.collector(renderer, config);
     const line = formatMethods[config.METHOD.toUpperCase()](collector, config);
+
+    const maxBufferSize = Math.min(bufferSize, renderer.maxVertices) + (maxPathLength * 8);
+    renderer.createBuffers(maxBufferSize);
 
     if (config.SHOW_FOLDERS && renderer.halfExtent) {
         let overlay = document.querySelector("#overlay");

@@ -47,6 +47,9 @@ const packageImports = (nodes) => {
     const map = {};
     const duplicated = [];
 
+    let amountCurves = 0;
+    let maxPathLength = 0;
+
     nodes.forEach(function(d) {
         map[d.data.file] = d;
     });
@@ -60,15 +63,18 @@ const packageImports = (nodes) => {
 
         imports.forEach(function(i) {
             if (map[i]) {
+                const path = d.path(map[i]);
                 duplicated.push({
-                    path: d.path(map[i]),
-                    size
+                    path, size
                 });
+                amountCurves += path.length;
+                maxPathLength = Math.max(maxPathLength, path.length);
             }
         });
     });
 
-    return duplicated;
+
+    return { duplicated, bufferSize: amountCurves * 8, maxPathLength };
 }
 
 export { packageHierarchy, packageImports };

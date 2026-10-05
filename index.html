@@ -69,8 +69,8 @@ try {
     const response = await fetch(config.JSON_FILE);
 
     if (!response.ok) {
-        status.set(error, { type: StatusType.ERROR });
-        throw error;
+        status.set(response.status, { type: StatusType.ERROR });
+        throw response.status;
     }
 
     const json = await response.json();

@@ -1,4 +1,4 @@
-const MAX_VERTICES = 1_000_000;
+const MAX_VERTICES = 2 * 1_000_000;
 
 const FOV = (45 * Math.PI) / 180;
 const CAMERA_Z = 6.0;
@@ -172,10 +172,6 @@ function loadShader(gl, type, source) {
 }
 
 export default class WebGL2Renderer {
-    curves = [];
-    sizes = [];
-    alphaMultipliers = [];
-
     constructor(canvas) {
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2", {
@@ -280,6 +276,14 @@ export default class WebGL2Renderer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
+    createBuffers(bufferSize) {
+        this.bufferCurves = new Float32Array(bufferSize);
+        this.bufferCurvesIndex = 0;
+
+        this.bufferSizes = new Float32Array(bufferSize / 8);
+        this.bufferSizesIndex = 0;
+    }
+
     resize() {
         const gl = this.gl;
 
@@ -321,6 +325,10 @@ export default class WebGL2Renderer {
         return halfVisibleWorld * this.config.INNER_RADIUS / this.config.SCALE;
     }
 
+    get maxVertices() {
+        return MAX_VERTICES;
+    }
+
     clear() {
         const gl = this.gl;
 
@@ -340,19 +348,21 @@ export default class WebGL2Renderer {
         let current = null;
 
         const pushCubic = (p0, p1, p2, p3) => {
-            renderer.curves.push(
-                p0.x, p0.y,
-                p1.x, p1.y,
-                p2.x, p2.y,
-                p3.x, p3.y
-            );
+            renderer.bufferCurves[renderer.bufferCurvesIndex] = p0.x;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 1] = p0.y;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 2] = p1.x;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 3] = p1.y;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 4] = p2.x;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 5] = p2.y;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 6] = p3.x;
+            renderer.bufferCurves[renderer.bufferCurvesIndex + 7] = p3.y;
+            renderer.bufferCurvesIndex += 8;
         };
 
         return {
             beginPath: () => {
-                renderer.curves.length = 0;
-                renderer.sizes.length = 0;
-                renderer.alphaMultipliers.length = 0;
+                renderer.bufferCurvesIndex = 0;
+                renderer.bufferSizesIndex = 0;
 
                 current = null;
             },
@@ -404,15 +414,16 @@ export default class WebGL2Renderer {
     }
 
     draw(line, d, options) {
-        const before = this.curves.length;
+        const before = this.bufferCurvesIndex;
         line(d.path);
-        const added = (this.curves.length - before) / 8;
+        const added = (this.bufferCurvesIndex - before) / 8;
 
         for (let i = 0; i < added; i++) {
-            this.sizes.push(options.size || 0);
+            this.bufferSizes[this.bufferSizesIndex] = options.size || 0
+            this.bufferSizesIndex += 1;
         }
 
-        if (this.curves.length > MAX_VERTICES * 2) {
+        if (this.bufferCurvesIndex > MAX_VERTICES) {
             WebGL2Renderer.collector(this, this.config).closePath();
             this.render(options.maxSize, options.alphaMultiplier);
 
@@ -477,7 +488,7 @@ export default class WebGL2Renderer {
 
     render(maxSize, alphaMultiplier = 1.0) {
         const gl = this.gl;
-        const curveCount = this.curves.length / 8;
+        const curveCount = this.bufferCurvesIndex / 8;
 
         if (curveCount === 0)
             return;
@@ -501,7 +512,7 @@ export default class WebGL2Renderer {
 
         // curves
         gl.bindBuffer(gl.ARRAY_BUFFER, this.curveBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.curves), gl.STREAM_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, this.bufferCurves.subarray(0, this.bufferCurvesIndex), gl.DYNAMIC_DRAW);
 
         const stride = 8 * Float32Array.BYTES_PER_ELEMENT;
         const {
@@ -519,7 +530,7 @@ export default class WebGL2Renderer {
 
         // sizes/colors
         gl.bindBuffer(gl.ARRAY_BUFFER, this.sizeBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.sizes), gl.STREAM_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, this.bufferSizes.subarray(0, this.bufferSizesIndex), gl.DYNAMIC_DRAW);
 
         gl.enableVertexAttribArray(vertexSize);
         gl.vertexAttribPointer(vertexSize, 1, gl.FLOAT, false, 0, 0);
