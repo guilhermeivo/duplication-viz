@@ -188,13 +188,11 @@ export function renderVisualization(canvas, data) {
         renderer.clear();
         collector.beginPath();
 
-        const dim = store.get("dim_alpha") ?? 0.0;
-
         const inside = selected ? new Set(selected.leaves()) : null;
 
         const touches = d => inside.has(d.path[0]) || inside.has(d.path[d.path.length - 1]);
 
-        const k = inside ? dim : 1.0;
+        const k = inside ? store.get("dim_alpha") : 1.0;
 
         links.forEach(d => {
             if (inside && touches(d)) return;
@@ -206,20 +204,23 @@ export function renderVisualization(canvas, data) {
             });
         });
 
+        collector.closePath();
+        renderer.render(store.get("max_duplicated_lines"), k);
+
         if (inside) {
             links.forEach(d => {
                 if (!touches(d)) return;
 
                 renderer.draw(line, d, {
                     size: d.size,
-                    alphaMultiplier: k,
+                    alphaMultiplier: 1.0,
                     maxSize: store.get("max_duplicated_lines")
                 });
             });
-        }
 
-        collector.closePath();
-        renderer.render(store.get("max_duplicated_lines"), k);
+            collector.closePath();
+            renderer.render(store.get("max_duplicated_lines"), 1.0);
+        }
 
         console.timeEnd(label);
     }
