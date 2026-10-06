@@ -1,4 +1,4 @@
-import { colorScaleFunc } from "../color.js"
+import { colorScaleFunc, objectToRgba } from "../color.js"
 
 export default class CanvasRenderer {
     #lineWidth = 0.1;
@@ -83,9 +83,8 @@ export default class CanvasRenderer {
 
         line(d.path);
 
-        const color = colorScale(options.size);
         // options.alphaMultiplier
-        this.ctx.strokeStyle = `rgba(${255 * color.r * color.alpha}, ${255 * color.g * color.alpha}, ${255 * color.b * color.alpha}, ${color.alpha})`;
+        this.ctx.strokeStyle = objectToRgba(colorScale(options.size));
 
         this.ctx.lineWidth = this.#lineWidth;
 

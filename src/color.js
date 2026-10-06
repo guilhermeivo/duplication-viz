@@ -18,4 +18,8 @@ const colorScaleFunc = (domain, range) => {
     }
 }
 
-export { colorScaleFunc };
+const objectToRgba = ({ r, g, b, alpha }) => {
+    return `rgba(${255 * r * alpha}, ${255 * g * alpha}, ${255 * b * alpha}, ${alpha})`
+}
+
+export { colorScaleFunc, objectToRgba };

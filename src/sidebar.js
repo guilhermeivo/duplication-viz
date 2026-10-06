@@ -1,5 +1,5 @@
 import { store } from "./store.js"
-import { colorScaleFunc } from "./color.js"
+import { colorScaleFunc, objectToRgba } from "./color.js"
 
 (() => {
     const sliderDuplicatedLines = document.querySelector("#slider-duplicated-lines");
@@ -48,9 +48,8 @@ import { colorScaleFunc } from "./color.js"
         );
 
         for (let i = 0; i < 1; i += 0.25) {
-            const c = colorScale(i);
             const element = document.createElement("i");
-            element.style.background = `rgba(${255 * c.r * c.alpha}, ${255 * c.g * c.alpha}, ${255 * c.b * c.alpha}, ${c.alpha})`;
+            element.style.background = objectToRgba(colorScale(i));
             element.style.flex = 1;
             legend.appendChild(element);
         }
