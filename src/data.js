@@ -84,14 +84,7 @@ const packageImports = (nodes, steps) => {
 
         const size = d.data.size || 0;
 
-        const bin = maxSize > 0 && size > 0
-            ? Math.min(
-                steps - 1,
-                Math.floor(
-                    (Math.log1p(size) / Math.log1p(maxSize)) * steps
-                )
-            )
-            : 0;
+        const bin = sizeToBin(size, maxSize, steps)
 
         histogram[bin]++;
     });
