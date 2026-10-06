@@ -43,9 +43,11 @@ const packageHierarchy = (classes) => {
     return d3.hierarchy(map[""]);
 }
 
-const packageImports = (nodes) => {
+const packageImports = (nodes, steps) => {
     const map = {};
     const duplicated = [];
+
+    const maxSize = Math.max(...nodes.map(l => l.data.size || 0));
 
     let amountCurves = 0;
     let maxPathLength = 0;
@@ -73,8 +75,46 @@ const packageImports = (nodes) => {
         });
     });
 
+    const histogram = new Uint32Array(steps);
+    nodes.forEach(d => {
+        const imports = d.data.duplicated;
 
-    return { duplicated, bufferSize: amountCurves * 8, maxPathLength };
+        if (!imports)
+            return;
+
+        const size = d.data.size || 0;
+
+        const bin = maxSize > 0 && size > 0
+            ? Math.min(
+                steps - 1,
+                Math.floor(
+                    (Math.log1p(size) / Math.log1p(maxSize)) * steps
+                )
+            )
+            : 0;
+
+        histogram[bin]++;
+    });
+
+
+    return { duplicated, bufferSize: amountCurves * 8, maxPathLength, histogram, maxSize };
 }
 
-export { packageHierarchy, packageImports };
+function sizeToBin(size, maxSize, steps) {
+    if (maxSize <= 0 || size <= 0)
+        return -1;
+
+    return Math.min(
+        steps - 1,
+        Math.floor((size / maxSize) * steps)
+    );
+}
+function binToSize(bin, maxSize, steps) {
+    if (maxSize <= 0)
+        return 0;
+
+    return ((bin + 0.5) / steps) * maxSize;
+}
+
+
+export { packageHierarchy, packageImports, sizeToBin, binToSize };

@@ -95,11 +95,11 @@ const calcLinks = ({ tree }) => {
     const cluster = d3.cluster()
         .size([360, store.get("inner_radius")]);
 
-    const maxDuplicatedLines = Math.max(...tree.leaves().map(l => l.data.size || 0));
-    store.set({ max_duplicated_lines: maxDuplicatedLines });
-
     cluster(tree);
-    const { duplicated: links, bufferSize, maxPathLength } = packageImports(tree.leaves());
+    const { duplicated: links, bufferSize, maxPathLength, histogram, maxSize } = packageImports(tree.leaves(), store.get("steps_histogram"));
+        
+    store.set({ max_duplicated_lines: maxSize });
+    store.set({ duplicated_lines_histogram: histogram });
 
     return { links, bufferSize, maxPathLength };
 }
@@ -151,6 +151,16 @@ export function renderVisualization(canvas, data) {
 
                 status.loading();
 
+                await new Promise(r => setTimeout(r, 100));
+
+                ({ links } = calcLinks({ tree: overlay.zoomed || root, store }));
+                paint(props);
+                overlay.clean();
+                overlay.draw({
+                    root: overlay.zoomed || root,
+                    halfExtent: renderer.halfExtent,
+                });
+
                 if (props.isZoomed) {
                     const f = [...store.get("folder_hierarchy")];
                     f.push(
@@ -161,16 +171,6 @@ export function renderVisualization(canvas, data) {
                     );
                     store.set({ folder_hierarchy: f });
                 }
-
-                await new Promise(r => setTimeout(r, 100));
-
-                ({ links } = calcLinks({ tree: overlay.zoomed || root, store }));
-                paint(props);
-                overlay.clean();
-                overlay.draw({
-                    root: overlay.zoomed || root,
-                    halfExtent: renderer.halfExtent,
-                });
 
                 status.loadingEnd();
             }
@@ -227,9 +227,17 @@ export function renderVisualization(canvas, data) {
 
     paint();
 
+    let lastSubscribe = false;
     store.subscribe(async (s, prev) => {
+        if (s.min_size !== prev.min_size || s.radial_beta !== prev.radial_beta)
+            lastSubscribe = true;
+
         if (store.get("in_interaction"))
             return;
+
+        if (!lastSubscribe)
+            return;
+        lastSubscribe = false;
 
         // update beta bundling
         line = formatMethods[store.get("method").toUpperCase()](collector);
@@ -246,6 +254,7 @@ export function renderVisualization(canvas, data) {
 
             ({ links } = calcLinks({ tree: overlay.zoomed || root, store }));
             paint();
+            
             overlay.clean();
             overlay.draw({
                 root: overlay.zoomed || root,

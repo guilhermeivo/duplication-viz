@@ -27,14 +27,14 @@
                     <span class="number" id="value-duplicated-lines"></span>
                 </p>
 
-                <div id="histogram-duplicated-lines"></div>
+                <div class="histogram" id="histogram-duplicated-lines"></div>
 
                 <label for="duplicated-lines">
                     <input
                         type="range"
                         id="slider-duplicated-lines"
                         name="duplicated-lines"
-                        min="8"
+                        min="0"
                         max="23000"
                         value="90"
                     />
@@ -74,10 +74,10 @@
 
                 <div id="legend"></div>
 
-                <p class="label">
-                    <span class="number">0</span>
-                    <span>duplicate lines</span>
-                    <span class="number" id="value-legend-max-duplicated-lines"></span>
+                <p class="label grid">
+                    <span class="number" class="legend-start">0</span>
+                    <span class="legend-center">duplicate lines</span>
+                    <span class="number legend-end" id="value-legend-max-duplicated-lines"></span>
                 </p>
 
                 <p class="description">

@@ -42,6 +42,8 @@ export const store = createStore({
     // sidebar
     in_interaction: false,
     folder_hierarchy: [ "kernel" ],
+    steps_histogram: 8,
+    duplicated_lines_histogram: undefined,
 
     // app
     radial_beta: 0.9,
