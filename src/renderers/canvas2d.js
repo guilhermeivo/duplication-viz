@@ -19,6 +19,11 @@ const colorScaleFunc = (domain, range) => {
 }
 
 export default class CanvasRenderer {
+    #lineWidth = 0.1;
+    #scale = 1;
+    #start_color = undefined;
+    #end_color = undefined;
+
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
@@ -28,14 +33,48 @@ export default class CanvasRenderer {
         }
     }
 
-    init(config) {
-        this.config = config;
+    // builder
 
-        this.ctx.scale(config.SCALE, config.SCALE);
-        this.ctx.translate(config.WIDTH / 2, config.HEIGHT / 2);
+    setLineWidth(value) {
+        if (this.#lineWidth == value)
+            return this;
+
+        this.#lineWidth = value;
+
+        return this;
     }
 
-    static collector(renderer, config) {
+    setScale(value) {
+        if (this.#scale == value)
+            return this;
+
+        this.#scale = value;
+
+        return this;
+    }
+
+    setColors(values) {
+        if (this.#start_color == values[0] && this.#end_color == values[1])
+            return this;
+
+        this.#start_color = values[0];
+        this.#end_color = values[1];
+
+        return this;
+    }
+
+    //
+
+    init() {
+        this.resize();
+    }
+
+    resize() {
+        this.ctx.scale(this.#scale, this.#scale);
+        this.ctx.translate(this.canvas.clientWidth / 2, this.canvas.clientHeight / 2);
+    }
+
+    static collector(renderer, ratio) {
         return {
             beginPath: () => { },
 
@@ -56,7 +95,7 @@ export default class CanvasRenderer {
     }
 
     draw(line, d, options) {
-        const colorScale = colorScaleFunc([0, options.maxSize], [this.config.START_COLOR, this.config.END_COLOR]);
+        const colorScale = colorScaleFunc([0, options.maxSize], [this.#start_color, this.#end_color]);
 
         this.ctx.beginPath();
 
@@ -66,7 +105,7 @@ export default class CanvasRenderer {
         // options.alphaMultiplier
         this.ctx.strokeStyle = `rgba(${255 * color.r * color.alpha}, ${255 * color.g * color.alpha}, ${255 * color.b * color.alpha}, ${color.alpha})`;
 
-        this.ctx.lineWidth = this.config.LINE_WIDTH || 0.1;
+        this.ctx.lineWidth = this.#lineWidth;
 
         this.ctx.stroke();
     }

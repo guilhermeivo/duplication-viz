@@ -2,17 +2,19 @@ import { status, StatusType } from "./status.js"
 import { packageHierarchy, packageImports } from "./data.js"
 import getRendererClass from "./renderers/renderer.js"
 
+import { store } from "./store.js"
+
 export const formatMethods = {
-    RADIAL: (context, config) => {
-        const beta = config.RADIAL_BETA || 0.90
+    RADIAL: (context) => {
+        const beta = store.get("radial_beta");
         return d3.lineRadial()
             .curve(d3.curveBundle.beta(beta))
             .radius(d => d.y)
             .angle(d => d.x / 180 * Math.PI)
             .context(context)
     },
-    SQUARE: (context, config) => {
-        const squareRadius = config.SQUARE_RADIUS || 0
+    SQUARE: (context) => {
+        const squareRadius = store.get("square_radius");
         function roundedSquareRadius(angle, size, radius) {
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
@@ -64,7 +66,7 @@ export const formatMethods = {
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
 
-            const halfSquare = config.INNER_RADIUS;
+            const halfSquare = store.get("inner_radius");
 
             const boundary = roundedSquareRadius(
                 angle,
@@ -89,9 +91,9 @@ export const formatMethods = {
     }
 }
 
-const calcLinks = ({ tree, config }) => {
+const calcLinks = ({ tree }) => {
     const cluster = d3.cluster()
-        .size([360, config.INNER_RADIUS]);
+        .size([360, store.get("inner_radius")]);
 
     const maxDuplicatedLines = Math.max(...tree.leaves().map(l => l.data.size || 0));
 
@@ -101,11 +103,11 @@ const calcLinks = ({ tree, config }) => {
     return { links, bufferSize, maxDuplicatedLines, maxPathLength };
 }
 
-export function renderVisualization(canvas, config, data) {
+export function renderVisualization(canvas, data) {
     const label = "Render Visualization";
     console.time(label);
 
-    const Renderer = getRendererClass(config.CONTEXT_TYPE);
+    const Renderer = getRendererClass(store.get("context_type"));
 
     status.set(`Reading ${data.length} records...`);
 
@@ -117,23 +119,28 @@ export function renderVisualization(canvas, config, data) {
             return d3.ascending(nameA, nameB); 
         });
 
-    let { links, maxDuplicatedLines, bufferSize, maxPathLength } = calcLinks({ tree: root, config });
+    let { links, maxDuplicatedLines, bufferSize, maxPathLength } = calcLinks({ tree: root });
 
-    if (!Object.keys(formatMethods).includes(config.METHOD.toUpperCase())) {
+    if (!Object.keys(formatMethods).includes(store.get("method").toUpperCase())) {
         status.set("Unidentified geometry rendering method", { type: StatusType.ERROR });
         return false;
     }
 
-    const renderer = new Renderer(canvas);
-    renderer.init(config);
+    const renderer = new Renderer(canvas)
+        .setSegments(store.get("segments"))
+        .setLineWidth(store.get("line_width"))
+        .setColors([ store.get("start_color"), store.get("end_color") ])
+        .setScale(store.get("scale"))
+        .setRadius(store.get("inner_radius"));
+    renderer.init(store);
 
-    const collector = Renderer.collector(renderer, config);
-    const line = formatMethods[config.METHOD.toUpperCase()](collector, config);
+    const collector = Renderer.collector(renderer, renderer.ratio);
+    const line = formatMethods[store.get("method").toUpperCase()](collector);
 
     const maxBufferSize = Math.min(bufferSize, renderer.maxVertices) + (maxPathLength * 8);
     renderer.createBuffers(maxBufferSize);
 
-    if (config.SHOW_FOLDERS && renderer.halfExtent) {
+    if (store.get("show_folders") && renderer.halfExtent) {
         let overlay = document.querySelector("#overlay");
         overlay.create({
             canvas,
@@ -144,22 +151,20 @@ export function renderVisualization(canvas, config, data) {
 
                 await new Promise(r => setTimeout(r, 100));
 
-                ({ links, maxDuplicatedLines } = calcLinks({ tree: overlay.zoomed || root, config }));
+                ({ links, maxDuplicatedLines } = calcLinks({ tree: overlay.zoomed || root, store }));
                 paint(props);
                 overlay.clean();
                 overlay.draw({
                     root: overlay.zoomed || root,
-                    config,
                     halfExtent: renderer.halfExtent,
                 });
-                ({ links, maxDuplicatedLines } = calcLinks({ tree: root, config }));
+                ({ links, maxDuplicatedLines } = calcLinks({ tree: root, store }));
 
                 status.loadingEnd();
             }
         });
         overlay.draw({
             root: overlay.zoomed || root,
-            config,
             halfExtent: renderer.halfExtent,
         });
     }
@@ -171,7 +176,7 @@ export function renderVisualization(canvas, config, data) {
         renderer.clear();
         collector.beginPath();
 
-        const dim = config.DIM_ALPHA ?? 0.0;
+        const dim = store.get("dim_alpha") ?? 0.0;
 
         const inside = selected ? new Set(selected.leaves()) : null;
 
@@ -202,7 +207,7 @@ export function renderVisualization(canvas, config, data) {
         }
 
         collector.closePath();
-        renderer.render();
+        renderer.render(maxDuplicatedLines, k);
 
         console.timeEnd(label);
     }

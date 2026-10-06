@@ -12,18 +12,18 @@ export const status = {
         this.body = body;
     },
 
-    set(text, config = {}) {
+    set(text, options = {}) {
         if (this.element)
             this.element.classList.remove("error");
 
         if (this.element) {
-            if (config.type == StatusType.ERROR) {
+            if (options.type == StatusType.ERROR) {
                 this.element.classList.add("error");
                 text = `Error:\n\n${text}`;
             }
             this.element.textContent = text;
         } else {
-            if (config.config == StatusType.INFO) {
+            if (options.type == StatusType.INFO) {
                 console.log(text);
             } else {
                 console.error(text);

@@ -4,43 +4,49 @@ import fs from "node:fs";
 import { status, StatusType } from "./src/status.js"
 import { renderVisualization } from "./src/app.js"
 
+import { store } from "./src/store.js"
+
 import * as d3 from "d3";
 globalThis.d3 = d3;
 
-const config = {
-    SCALE: 4,
+store.set({
+    json: "examples/linus-linux/root.json",
 
-    JSON_FILE: "examples/linus-linux/root.json",
-    SHOW_FOLDERS: true,
-    METHOD: "RADIAL",
-    DEPTH: -1,
-    START_COLOR: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.15 },
-    END_COLOR: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.85 },
-    WIDTH: 1920,
-    HEIGHT: 1920,
-    PADDING: 120,
-    LINE_WIDTH: 0.02,
-    SEGMENTS: 16,
+    // app
+    scale: 4,
+    show_folders: false,
+    method: "radial",
+    square_radius: 16,
+    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.15 },
+    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.85 },
+    width: 1920,
+    height: 1920,
+    
+    line_width: 0.2, // px
+    segments: 16,
+    
+    padding: 120,
+    depth: -1,
+    arc_width: 1.0,
 
-    CONTEXT_TYPE: "2d" // Canvas 2D
-}
+    context_type: "2d" // Canvas 2D
+})
 
-const diameter = Math.min(config.WIDTH, config.HEIGHT);
-
-config.INNER_RADIUS = (diameter / 2) - config.PADDING;
+const diameter = Math.min(store.get("width"), store.get("height"));
+store.set({ "inner_radius": (diameter / 2) - store.get("padding") })
 
 const canvas = createCanvas(
-    config.WIDTH * config.SCALE,
-    config.HEIGHT * config.SCALE
+    store.get("width") * store.get("scale"),
+    store.get("height") * store.get("scale")
 );
 
 status.init();
 
 try {
-    const json = JSON.parse(fs.readFileSync(config.JSON_FILE, "utf8"));
+    const json = JSON.parse(fs.readFileSync(store.get("json"), "utf8"));
     const data = json.data;
 
-    renderVisualization(canvas, config, data);
+    renderVisualization(canvas, data);
 } catch (error) {
     status.set(error, { type: StatusType.ERROR });
 }

@@ -172,6 +172,14 @@ function loadShader(gl, type, source) {
 }
 
 export default class WebGL2Renderer {
+    #segments = 16;
+    #lineWidth = 0.1;
+    #scale = 1;
+    #radius = undefined;
+    #start_color = undefined;
+    #end_color = undefined;
+    #ratio = undefined;
+
     constructor(canvas) {
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2", {
@@ -185,11 +193,67 @@ export default class WebGL2Renderer {
         }
     }
 
-    init(config) {
-        this.config = config;
-        this.config.SEGMENTS = this.config.SEGMENTS || 16;
-        this.config.LINE_WIDTH = this.config.LINE_WIDTH || 0.1;
+    // builder
 
+    setSegments(value) {
+        if (this.#segments == value)
+            return this;
+
+        this.#segments = value;
+
+        return this;
+    }
+
+    setLineWidth(value) {
+        if (this.#lineWidth == value)
+            return this;
+
+        this.#lineWidth = value;
+
+        return this;
+    }
+
+    setColors(values) {
+        if (this.#start_color == values[0] && this.#end_color == values[1])
+            return this;
+
+        this.#start_color = values[0];
+        this.#end_color = values[1];
+
+        return this;
+    }
+
+    setScale(value) {
+        if (this.#scale == value)
+            return this;
+
+        this.#scale = value;
+
+        if (this.#radius != undefined)
+            this.#ratio = this.#scale / this.#radius;
+
+        return this;
+    }
+
+    setRadius(value) {
+        if (this.#radius == value)
+            return this;
+
+        this.#radius = value;
+
+        if (this.#scale != undefined)
+            this.#ratio = this.#scale / this.#radius;
+
+        return this;
+    }
+
+    //
+
+    get ratio() {
+        return this.#ratio;
+    }
+
+    init() {
         const gl = this.gl;
 
         const shaderProgram = initShaderProgram(gl, vertexShaderSource, fragmentShaderSource);
@@ -235,11 +299,11 @@ export default class WebGL2Renderer {
         this.sizeBuffer = gl.createBuffer();
 
         gl.useProgram(this.programInfo.program);
-        gl.uniform1i(this.programInfo.uniformLocations.segments, this.config.SEGMENTS);
+        gl.uniform1i(this.programInfo.uniformLocations.segments, this.#segments);
 
-        const sColor = this.config.START_COLOR;
+        const sColor = this.#start_color;
         gl.uniform4f(this.programInfo.uniformLocations.startColor, sColor.r, sColor.g, sColor.b, sColor.alpha);
-        const eColor = this.config.END_COLOR;
+        const eColor = this.#end_color;
         gl.uniform4f(this.programInfo.uniformLocations.endColor, eColor.r, eColor.g, eColor.b, eColor.alpha);
         gl.uniform1f(this.programInfo.uniformLocations.minSize, 0);
 
@@ -289,8 +353,8 @@ export default class WebGL2Renderer {
 
         const dpr = window.devicePixelRatio || 1;
 
-        const w = Math.round(this.canvas.clientWidth * dpr * this.config.SCALE);
-        const h = Math.round(this.canvas.clientHeight * dpr * this.config.SCALE);
+        const w = Math.round(this.canvas.clientWidth * dpr * this.#scale);
+        const h = Math.round(this.canvas.clientHeight * dpr * this.#scale);
 
         this.canvas.style.width = this.canvas.clientWidth + "px";
         this.canvas.style.height = this.canvas.clientHeight + "px";
@@ -306,8 +370,8 @@ export default class WebGL2Renderer {
         gl.useProgram(this.programInfo.program);
 
         const worldPerPx = (2 * CAMERA_Z * Math.tan(FOV / 2)) / h;
-        const ratio = this.config.SCALE / this.config.INNER_RADIUS;
-        const widthPx = (this.config.LINE_WIDTH * ratio) / worldPerPx;
+        const ratio = this.#scale / this.#radius;
+        const widthPx = (this.#lineWidth * ratio) / worldPerPx;
 
         console.debug(`[WebGL2] line width = ${widthPx.toFixed(3)} px`);
 
@@ -322,7 +386,7 @@ export default class WebGL2Renderer {
     get halfExtent() {
         const halfVisibleWorld = CAMERA_Z * Math.tan(FOV / 2);
 
-        return halfVisibleWorld * this.config.INNER_RADIUS / this.config.SCALE;
+        return halfVisibleWorld * this.#radius / this.#scale;
     }
 
     get maxVertices() {
@@ -343,8 +407,7 @@ export default class WebGL2Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    static collector(renderer, config) {
-        const ratio = config.SCALE / config.INNER_RADIUS;
+    static collector(renderer, ratio) {
         let current = null;
 
         const pushCubic = (p0, p1, p2, p3) => {
@@ -424,10 +487,10 @@ export default class WebGL2Renderer {
         }
 
         if (this.bufferCurvesIndex > MAX_VERTICES) {
-            WebGL2Renderer.collector(this, this.config).closePath();
+            WebGL2Renderer.collector(this, this.#ratio).closePath();
             this.render(options.maxSize, options.alphaMultiplier);
 
-            WebGL2Renderer.collector(this, this.config).beginPath();
+            WebGL2Renderer.collector(this, this.#ratio).beginPath();
         }
     }
 
@@ -536,7 +599,7 @@ export default class WebGL2Renderer {
         gl.vertexAttribPointer(vertexSize, 1, gl.FLOAT, false, 0, 0);
         gl.vertexAttribDivisor(vertexSize, 1);
 
-        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (this.config.SEGMENTS + 1) * 2, curveCount);
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (this.#segments + 1) * 2, curveCount);
 
         if (this.useFloat)
             this.present();

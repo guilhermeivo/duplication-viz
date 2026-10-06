@@ -25,33 +25,33 @@
 import { status, StatusType } from "./src/status.js"
 import { renderVisualization } from "./src/app.js"
 
-const config = {
-    SCALE: 2,
+import { store } from "./src/store.js"
 
-    JSON_FILE: "examples/linus-linux/root.json",
-    SHOW_FOLDERS: true,
-    METHOD: "RADIAL",
-    SQUARE_RADIUS: 16,
-    DEPTH: -1,
-    START_COLOR: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
-    END_COLOR: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
-    WIDTH: window.innerWidth,
-    HEIGHT: window.innerHeight,
-    PADDING: 120,
+store.set({
+    json: "examples/linus-linux/root.json",
 
-    LINE_WIDTH: 0.05,
-    SEGMENTS: 16,
+    // app
+    scale: 2,
+    show_folders: true,
+    method: "radial",
+    square_radius: 16,
+    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
+    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
+    width: window.innerWidth,
+    height: window.innerHeight,
+    
+    line_width: 0.05, // px
+    segments: 16,
+    
+    padding: 120,
+    depth: -1,
+    arc_width: 1.0,
 
-    ARC_WIDTH: 1,
-    MIN_ARC_LENGTH: 2,
-    DIM_ALPHA: 0.0,
+    context_type: "webgl2"
+})
 
-    CONTEXT_TYPE: "webgl2"
-}
-
-const diameter = Math.min(config.WIDTH, config.HEIGHT);
-
-config.INNER_RADIUS = (diameter / 2) - config.PADDING;
+const diameter = Math.min(store.get("width"), store.get("height"));
+store.set({ "inner_radius": (diameter / 2) - store.get("padding") })
 
 const canvas = document.querySelector("canvas");
 canvas.width = diameter;
@@ -66,7 +66,7 @@ try {
     status.set("Loading...");
     status.loading();
 
-    const response = await fetch(config.JSON_FILE);
+    const response = await fetch(store.get("json"));
 
     if (!response.ok) {
         status.set(response.status, { type: StatusType.ERROR });
@@ -75,7 +75,7 @@ try {
 
     const json = await response.json();
     const data = json.data;
-    renderVisualization(canvas, config, data);
+    renderVisualization(canvas, data);
 
     status.loadingEnd();
 } catch (error) {

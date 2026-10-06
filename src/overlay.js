@@ -1,12 +1,14 @@
+import { store } from "./store.js"
+
 const DEG = Math.PI / 180;
 
-function collectFolders(root, config) {
+function collectFolders(root) {
     const folders = [];
     let depth = 0;
 
     root.descendants().forEach(d => {
         if (!d.children || d.depth === 0) return;
-        if (config.DEPTH > 0 && (d.depth - depth) > config.DEPTH) return;
+        if (store.get("depth") > 0 && (d.depth - depth) > store.get("depth")) return;
 
         const leaves = d.leaves();
         const minX = d3.min(leaves, l => l.x);
@@ -17,10 +19,10 @@ function collectFolders(root, config) {
             return;
         }
 
-        const radius = config.INNER_RADIUS + ((d.depth - depth) * 16);
+        const radius = store.get("inner_radius") + ((d.depth - depth) * 16);
         const arcLength = (maxX - minX) * DEG * radius;
 
-        if (arcLength < (config.MIN_ARC_LENGTH ?? 2)) return;
+        if (arcLength < store.get("min_arc_length")) return;
 
         folders.push({ node: d, minX, maxX, radius, arcLength, leafCount: leaves.length });
     });
@@ -117,7 +119,7 @@ class FolderOverlay extends HTMLElement {
         }
     }
 
-    draw({ root, config, halfExtent }) {
+    draw({ root, halfExtent }) {
         const size = canvas.clientWidth;
         const pxToUnit = (2 * halfExtent) / size;
 
@@ -127,12 +129,12 @@ class FolderOverlay extends HTMLElement {
             .attr("height", size)
             .attr("viewBox", `${-halfExtent} ${-halfExtent} ${2 * halfExtent} ${2 * halfExtent}`);
 
-        const arcWidth = (config.ARC_WIDTH ?? 1.5) * pxToUnit;
+        const arcWidth = store.get("arc_width") * pxToUnit;
         const hitWidth = 12 * pxToUnit;
         const fontSize = 9 * pxToUnit;
 
         const arc = d3.arc();
-        const folders = collectFolders(root, config);
+        const folders = collectFolders(root);
 
         this.items = this.element.append("g")
             .selectAll("g.folder")
