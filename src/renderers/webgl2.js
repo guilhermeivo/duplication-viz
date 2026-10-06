@@ -1,7 +1,7 @@
 const MAX_VERTICES = 2 * 1_000_000;
 
 const FOV = (45 * Math.PI) / 180;
-const CAMERA_Z = 6.0;
+const CAMERA_Z = 6.5;
 
 /**
  * Anti-aliasing por cobertura: a linha tem no mínimo 1px + 0.5px de franja,
@@ -175,6 +175,7 @@ export default class WebGL2Renderer {
     #segments = 16;
     #lineWidth = 0.1;
     #scale = 1;
+    #minSize = 0;
     #radius = undefined;
     #start_color = undefined;
     #end_color = undefined;
@@ -231,6 +232,20 @@ export default class WebGL2Renderer {
 
         if (this.#radius != undefined)
             this.#ratio = this.#scale / this.#radius;
+
+        return this;
+    }
+
+    setMinSize(value) {
+        if (this.#minSize == value)
+            return this;
+
+        this.#minSize = value;
+
+        if (this.programInfo) {
+            this.gl.useProgram(this.programInfo.program);
+            this.gl.uniform1f(this.programInfo.uniformLocations.minSize, this.#minSize);
+        }
 
         return this;
     }
@@ -305,7 +320,7 @@ export default class WebGL2Renderer {
         gl.uniform4f(this.programInfo.uniformLocations.startColor, sColor.r, sColor.g, sColor.b, sColor.alpha);
         const eColor = this.#end_color;
         gl.uniform4f(this.programInfo.uniformLocations.endColor, eColor.r, eColor.g, eColor.b, eColor.alpha);
-        gl.uniform1f(this.programInfo.uniformLocations.minSize, 0);
+        gl.uniform1f(this.programInfo.uniformLocations.minSize, this.#minSize);
 
         this.resize();
 
@@ -477,6 +492,9 @@ export default class WebGL2Renderer {
     }
 
     draw(line, d, options) {
+        if (options.size < this.#minSize)
+            return;
+
         const before = this.bufferCurvesIndex;
         line(d.path);
         const added = (this.bufferCurvesIndex - before) / 8;

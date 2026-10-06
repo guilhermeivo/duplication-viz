@@ -96,11 +96,12 @@ const calcLinks = ({ tree }) => {
         .size([360, store.get("inner_radius")]);
 
     const maxDuplicatedLines = Math.max(...tree.leaves().map(l => l.data.size || 0));
+    store.set({ max_duplicated_lines: maxDuplicatedLines });
 
     cluster(tree);
     const { duplicated: links, bufferSize, maxPathLength } = packageImports(tree.leaves());
 
-    return { links, bufferSize, maxDuplicatedLines, maxPathLength };
+    return { links, bufferSize, maxPathLength };
 }
 
 export function renderVisualization(canvas, data) {
@@ -119,7 +120,7 @@ export function renderVisualization(canvas, data) {
             return d3.ascending(nameA, nameB); 
         });
 
-    let { links, maxDuplicatedLines, bufferSize, maxPathLength } = calcLinks({ tree: root });
+    let { links, bufferSize, maxPathLength } = calcLinks({ tree: root });
 
     if (!Object.keys(formatMethods).includes(store.get("method").toUpperCase())) {
         status.set("Unidentified geometry rendering method", { type: StatusType.ERROR });
@@ -131,11 +132,12 @@ export function renderVisualization(canvas, data) {
         .setLineWidth(store.get("line_width"))
         .setColors([ store.get("start_color"), store.get("end_color") ])
         .setScale(store.get("scale"))
+        .setMinSize(store.get("min_size"))
         .setRadius(store.get("inner_radius"));
     renderer.init(store);
 
     const collector = Renderer.collector(renderer, renderer.ratio);
-    const line = formatMethods[store.get("method").toUpperCase()](collector);
+    let line = formatMethods[store.get("method").toUpperCase()](collector);
 
     const maxBufferSize = Math.min(bufferSize, renderer.maxVertices) + (maxPathLength * 8);
     renderer.createBuffers(maxBufferSize);
@@ -149,16 +151,26 @@ export function renderVisualization(canvas, data) {
 
                 status.loading();
 
+                if (props.isZoomed) {
+                    const f = [...store.get("folder_hierarchy")];
+                    f.push(
+                        ...overlay.zoomed.data.file
+                            .replace(f.slice(1).join("/"), "")
+                            .replace(/^\//, "")
+                            .split("/")
+                    );
+                    store.set({ folder_hierarchy: f });
+                }
+
                 await new Promise(r => setTimeout(r, 100));
 
-                ({ links, maxDuplicatedLines } = calcLinks({ tree: overlay.zoomed || root, store }));
+                ({ links } = calcLinks({ tree: overlay.zoomed || root, store }));
                 paint(props);
                 overlay.clean();
                 overlay.draw({
                     root: overlay.zoomed || root,
                     halfExtent: renderer.halfExtent,
                 });
-                ({ links, maxDuplicatedLines } = calcLinks({ tree: root, store }));
 
                 status.loadingEnd();
             }
@@ -190,7 +202,7 @@ export function renderVisualization(canvas, data) {
             renderer.draw(line, d, {
                 size: d.size,
                 alphaMultiplier: k,
-                maxSize: maxDuplicatedLines
+                maxSize: store.get("max_duplicated_lines")
             });
         });
 
@@ -201,18 +213,47 @@ export function renderVisualization(canvas, data) {
                 renderer.draw(line, d, {
                     size: d.size,
                     alphaMultiplier: k,
-                    maxSize: maxDuplicatedLines
+                    maxSize: store.get("max_duplicated_lines")
                 });
             });
         }
 
         collector.closePath();
-        renderer.render(maxDuplicatedLines, k);
+        renderer.render(store.get("max_duplicated_lines"), k);
 
         console.timeEnd(label);
     }
 
     paint();
+
+    store.subscribe(async (s, prev) => {
+        if (store.get("in_interaction"))
+            return;
+
+        // update beta bundling
+        line = formatMethods[store.get("method").toUpperCase()](collector);
+        
+        // update min-lines
+        renderer.setMinSize(store.get("min_size"));
+
+        {
+            console.time(label);
+
+            status.loading();
+
+            await new Promise(r => setTimeout(r, 100));
+
+            ({ links } = calcLinks({ tree: overlay.zoomed || root, store }));
+            paint();
+            overlay.clean();
+            overlay.draw({
+                root: overlay.zoomed || root,
+                halfExtent: renderer.halfExtent,
+            });
+
+            status.loadingEnd();
+        }
+    });
 
     status.disable();
 

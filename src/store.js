@@ -39,8 +39,16 @@ export function createStore(initial) {
 }
 
 export const store = createStore({
+    // sidebar
+    in_interaction: false,
+    folder_hierarchy: [ "kernel" ],
+
     // app
     radial_beta: 0.9,
+    min_size: 0,
+
+    min_duplicated_lines: 0,
+    max_duplicated_lines: undefined,
 
     scale: 2,
     show_folders: false,

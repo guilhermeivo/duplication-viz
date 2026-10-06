@@ -7,16 +7,140 @@
 
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./src/overlay.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="container">
-    <div id="status"></div>
+<main>
+    <aside class="left-sidebar">
+        <div>
+            <div class="sec">
+                <p class="title" id="folder-hierarchy"></p>
+            </div>
 
-    <canvas id="canvas"></canvas>
+            <div class="sec">
+                <p class="label">
+                    <span>Minimum number of duplicate lines</span>
+                    <span class="number" id="value-duplicated-lines"></span>
+                </p>
 
-    <folder-overlay id="overlay"></folder-overlay>
-</div>
+                <div id="histogram-duplicated-lines"></div>
+
+                <label for="duplicated-lines">
+                    <input
+                        type="range"
+                        id="slider-duplicated-lines"
+                        name="duplicated-lines"
+                        min="8"
+                        max="23000"
+                        value="90"
+                    />
+
+                    <p class="label">
+                        <span class="number">0</span>
+                        <span>
+                            <span class="number" id="value-max-duplicated-lines"></span>
+                            lines
+                        </span>
+                    </p>
+                </label>
+            </div>
+            <div class="sec">
+                <p class="label">
+                    <span>Bundling tension (
+                        <math display="inline">
+                            <mi>β</mi>
+                        </math>
+                    )</span>
+                    <span class="number" id="value-beta-bundling"></span>
+                </p>
+
+                <label for="beta-bundling">
+                    <input
+                        type="range"
+                        id="slider-beta-bundling"
+                        name="beta-bundling"
+                        min="0"
+                        max="100"
+                        value="90"
+                    />
+                </label>
+            </div>
+            <div class="sec">
+                <p class="label">Legend</p>
+
+                <div id="legend"></div>
+
+                <p class="label">
+                    <span class="number">0</span>
+                    <span>duplicate lines</span>
+                    <span class="number" id="value-legend-max-duplicated-lines"></span>
+                </p>
+
+                <p class="description">
+                    The color accumulates where the edges overlap.
+                </p>
+            </div>
+        </div>
+        <div>
+            <div class="sec">
+                <p class="title">Code duplication</p>
+            </div>
+
+            <div class="sec">
+                <p class="label">Analyzed data</p>
+
+                <p class="label description">
+                    <span>Detector</span>
+                    <span class="number">
+                        <img src="assets/gitlab.svg" alt="gitlab" width="12px" style="display: inline-block;vertical-align:middle;">
+                        <a href="https://gitlab.com/ccsl-usp/codev/arkanjo-tool" target="_blank" rel="noopener">
+                        ArKanjo
+                        </a>
+                    </span>
+                </p>
+            </div>
+            <div class="sec">
+                <p class="label">How do I read it?</p>
+
+                <p class="label description">
+                    <span>Outer arc</span>
+                    <span>folders</span>
+                </p>
+
+                <p class="label description">
+                    <span>Edge</span>
+                    <span>duplication between two files</span>
+                </p>
+            </div>
+            <div class="sec">
+                <p>
+                    <span>
+                        <img src="assets/github.svg" alt="github" width="12px" style="display: inline-block;vertical-align:middle;">
+                        <a href="https://github.com/guilhermeivo/duplication-viz" target="_blank" rel="noopener">
+                        Project source code
+                        </a>
+                    </span>
+                </p>
+                <p class="label description">
+                    <span>Guilherme Ivo</span>
+                    <span class="number">GPL v3.0</span>
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <div id="container">
+        <div id="status"></div>
+
+        <canvas id="canvas"></canvas>
+
+        <folder-overlay id="overlay"></folder-overlay>
+    </div>
+</main>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
@@ -82,5 +206,8 @@ try {
     status.set(error, { type: StatusType.ERROR });
 }
 </script>
+
+<script type="module" src="./src/sidebar.js"></script>
+
 </body>
 </html>
