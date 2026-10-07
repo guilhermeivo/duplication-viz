@@ -24,6 +24,10 @@ self.onmessage = async (event) => {
             case ProtocolTasks.INITIALIZE:
                 console.time(label);
 
+                self.postMessage({
+                    type: ProtocolEvents.PROGRESS
+                });
+
                 const resInit = await initialize(message);
                 ({ renderer, links, collector, line, nodeMap, root } = resInit);
 
@@ -48,6 +52,10 @@ self.onmessage = async (event) => {
                 break;
             case ProtocolTasks.RENDER:
                 console.time(label);
+
+                self.postMessage({
+                    type: ProtocolEvents.PROGRESS
+                });
 
                 const resRender = await update({ renderer, collector, tree: zoomed ?? root, ...message });
                 ({ links, line } = resRender);

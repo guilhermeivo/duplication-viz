@@ -5,15 +5,9 @@ import update from "#worker/tasks/update.js";
 import getRendererClass from "#src/renderers/renderer.js"
 import { packageHierarchy } from "#src/data.js"
 
-import { ProtocolEvents } from "#worker/protocol.js";
-
 export default async function initialize({
     canvas, dpr, config, dynamic
 }) {
-    self.postMessage({
-        type: ProtocolEvents.PROGRESS
-    });
-
     const response = await fetch(config.data_url);
 
     if (!response.ok)
@@ -55,7 +49,7 @@ export default async function initialize({
     const { links, line, bufferSize, maxPathLength, folders } = await update({ renderer, collector, tree: root, config, dynamic });
 
     const maxBufferSize = Math.min(bufferSize, renderer.maxVertices) + (maxPathLength * 8);
-    renderer.createBuffers(maxBufferSize);
+    renderer.createBuffers && renderer.createBuffers(maxBufferSize);
 
     return { root, renderer, links, collector, line, folders, nodeMap, root };
 }

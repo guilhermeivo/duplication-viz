@@ -6,8 +6,11 @@ export default class CanvasRenderer {
     #start_color = undefined;
     #end_color = undefined;
 
-    constructor(canvas) {
+    constructor(canvas, dimension = [ 0, 0 ], dpr = 1.0) {
         this.canvas = canvas;
+        this.dwidth = dimension[0];
+        this.dheight = dimension[1];
+        this.dpr = dpr;
         this.ctx = canvas.getContext("2d");
 
         if (!this.ctx) {
@@ -45,6 +48,18 @@ export default class CanvasRenderer {
         return this;
     }
 
+    setSegments() {
+        return this;
+    }
+
+    setMinSize() {
+        return this;
+    }
+
+    setRadius() {
+        return this;
+    }
+
     //
 
     init() {
@@ -53,7 +68,7 @@ export default class CanvasRenderer {
 
     resize() {
         this.ctx.scale(this.#scale, this.#scale);
-        this.ctx.translate(this.canvas.clientWidth / 2, this.canvas.clientHeight / 2);
+        this.ctx.translate(this.dwidth / 2, this.dheight / 2);
     }
 
     static collector(renderer, ratio) {

@@ -1,28 +1,41 @@
 import { createCanvas } from "canvas";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 
 import { status, StatusType } from "#src/ui/status.js"
-import { renderVisualization } from "#src/app.js"
 
-import { store } from "#src/store.js"
+import initialize from "#src/worker/tasks/initialize.js";
+import render from "#src/worker/tasks/render.js";
+
+import { store, storeDynamic } from "#src/store.js"
 
 import * as d3 from "d3";
 globalThis.d3 = d3;
 
+const json = await readFile(
+    "./examples/linus-linux/root.json",
+    "utf8"
+);
+
+const url = `data:application/json,${encodeURIComponent(json)}`;
+
 store.set({
-    json: "examples/linus-linux/root.json",
+    data_url: url,
 
     // app
     scale: 4,
     show_folders: false,
     method: "radial",
     square_radius: 16,
-    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.15 },
-    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.85 },
+
+    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
+    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
     width: 1920,
     height: 1920,
+
+    dpr: 1,
     
-    line_width: 0.2, // px
+    line_width: 0.05, // px
     segments: 16,
     
     padding: 120,
@@ -43,10 +56,16 @@ const canvas = createCanvas(
 status.init();
 
 try {
-    const json = JSON.parse(fs.readFileSync(store.get("json"), "utf8"));
-    const data = json.data;
+    const message = {
+        canvas: canvas,
+        dpr: store.get("dpr"),
 
-    renderVisualization(canvas, data);
+        config: store.get(),
+        dynamic: storeDynamic.get(),
+    }
+
+    const { renderer, links, collector, line } = await initialize(message);
+    await render({ renderer, links, collector, line, ...message });
 } catch (error) {
     status.set(error, { type: StatusType.ERROR });
 }
