@@ -1,4 +1,4 @@
-import { status, StatusType } from "./status.js"
+import { status, StatusType } from "./ui/status.js"
 import { packageHierarchy, packageImports } from "./data.js"
 import getRendererClass from "./renderers/renderer.js"
 

@@ -1,4 +1,4 @@
-import { store } from "./store.js"
+import { store } from "../store.js"
 
 const DEG = Math.PI / 180;
 
