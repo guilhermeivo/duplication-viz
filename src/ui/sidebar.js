@@ -1,9 +1,9 @@
-import { store } from "@src/store.js"
+import { store, storeDynamic } from "@src/store.js"
 import { colorScaleFunc, objectToRgba } from "@src/color.js"
 import { sizeToBin } from "@src/data.js"
 
 (() => {
-    const stepsHistogram = store.get("steps_histogram");
+    const stepsHistogram = storeDynamic.get("steps_histogram");
 
     const sliderDuplicatedLines = document.querySelector("#slider-duplicated-lines");
     const sliderBetaBundling = document.querySelector("#slider-beta-bundling");
@@ -12,7 +12,7 @@ import { sizeToBin } from "@src/data.js"
         const valueDuplicatedLines =
             document.querySelector("#value-duplicated-lines");
 
-        const maxSize = store.get("max_duplicated_lines");
+        const maxSize = storeDynamic.get("max_duplicated_lines");
         const steps = stepsHistogram;
         const size = Number(minSize);
 
@@ -54,16 +54,16 @@ import { sizeToBin } from "@src/data.js"
 
         sliderDuplicatedLines.setAttribute(
             "step",
-            Math.floor((maxDuplicatedLines - store.get("min_duplicated_lines")) / stepsHistogram) - 1
+            Math.floor((maxDuplicatedLines - storeDynamic.get("min_duplicated_lines")) / stepsHistogram) - 1
         )
 
         drawLegendDuplicatedLines();
     }
 
     function drawLegendDuplicatedLines() {
-        if (store.get("min_duplicated_lines") == undefined)
+        if (storeDynamic.get("min_duplicated_lines") == undefined)
             return;
-        if (store.get("max_duplicated_lines") == undefined)
+        if (storeDynamic.get("max_duplicated_lines") == undefined)
             return;
 
         const legend = document.querySelector("#legend");
@@ -89,8 +89,8 @@ import { sizeToBin } from "@src/data.js"
     }
 
     function drawHistogramDuplicateLines() {
-        const max = store.get("max_duplicated_lines");
-        const duplicatedLinesHistogram = store.get("duplicated_lines_histogram");
+        const max = storeDynamic.get("max_duplicated_lines");
+        const duplicatedLinesHistogram = storeDynamic.get("duplicated_lines_histogram");
 
         const histogramDuplicatedLines = document.querySelector("#histogram-duplicated-lines");
 
@@ -110,30 +110,30 @@ import { sizeToBin } from "@src/data.js"
     }
 
     sliderDuplicatedLines.addEventListener("mousedown", () =>
-        store.set({ in_interaction: true })
+        storeDynamic.set({ in_interaction: true })
     )
 
     sliderDuplicatedLines.addEventListener("input", event =>
-        store.set({ min_size: event.target.value })
+        storeDynamic.set({ min_size: event.target.value })
     );
 
     sliderDuplicatedLines.addEventListener("mouseup", () =>
-        store.set({ in_interaction: false })
+        storeDynamic.set({ in_interaction: false })
     )
 
     sliderBetaBundling.addEventListener("mousedown", () =>
-        store.set({ in_interaction: true })
+        storeDynamic.set({ in_interaction: true })
     )
 
     sliderBetaBundling.addEventListener("input", event =>
-        store.set({ radial_beta: Math.min(Math.max((event.target.value / 100), 0.0), 1.0) })
+        storeDynamic.set({ radial_beta: Math.min(Math.max((event.target.value / 100), 0.0), 1.0) })
     );
 
     sliderBetaBundling.addEventListener("mouseup", () =>
-        store.set({ in_interaction: false })
+        storeDynamic.set({ in_interaction: false })
     )
 
-    store.subscribe((s, prev) => {
+    storeDynamic.subscribe((s, prev) => {
         if (s.min_size !== prev.min_size) updateMinSize(s.min_size);
         if (s.radial_beta !== prev.radial_beta) updateRadialBeta(s.radial_beta);
         if (s.max_duplicated_lines !== prev.max_duplicated_lines) updateMaxDuplicatedLines(s.max_duplicated_lines);
@@ -141,11 +141,11 @@ import { sizeToBin } from "@src/data.js"
         if (s.duplicated_lines_histogram !== prev.duplicated_lines_histogram) drawHistogramDuplicateLines();
     });
 
-    updateMinSize(store.get("min_size"));
-    updateRadialBeta(store.get("radial_beta"));
-    updateMaxDuplicatedLines(store.get("max_duplicated_lines"));
+    updateMinSize(storeDynamic.get("min_size"));
+    updateRadialBeta(storeDynamic.get("radial_beta"));
+    updateMaxDuplicatedLines(storeDynamic.get("max_duplicated_lines"));
 
     drawLegendDuplicatedLines();
-    drawFolderHierarchy(store.get("folder_hierarchy"));
+    drawFolderHierarchy(storeDynamic.get("folder_hierarchy"));
     drawHistogramDuplicateLines();
 })();

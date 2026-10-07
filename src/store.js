@@ -39,6 +39,30 @@ export function createStore(initial) {
 }
 
 export const store = createStore({
+    data_url: undefined,
+
+    // app
+    scale: 2,
+    show_folders: false,
+    method: "radial",
+    square_radius: 0,
+
+    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
+    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
+
+    width: 1920,
+    height: 1920,
+    dpr: 1.0,
+
+    depth: 0,
+    arc_width: 1.5,
+    min_arc_length: 2,
+    dim_alpha: 0.0,
+
+    context_type: "2d"
+});
+
+export const storeDynamic = createStore({
     // sidebar
     in_interaction: false,
     folder_hierarchy: [ "kernel" ],
@@ -52,18 +76,6 @@ export const store = createStore({
     min_duplicated_lines: 0,
     max_duplicated_lines: undefined,
 
-    scale: 2,
-    show_folders: false,
-    method: "radial",
-    square_radius: 0,
-
-    start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
-    end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
-    
-    depth: 0,
-    arc_width: 1.5,
-    min_arc_length: 2,
-    dim_alpha: 0.0,
-
-    context_type: "2d"
+    is_zoomed: false,
+    half_extent: undefined
 });

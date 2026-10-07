@@ -19,6 +19,8 @@
  * - Integration with the application's own data model.
  */
 
+import * as d3 from "d3";
+
 const packageHierarchy = (classes) => {
     const map = {};
 

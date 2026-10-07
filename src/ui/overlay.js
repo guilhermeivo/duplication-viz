@@ -1,40 +1,16 @@
+import * as d3 from "d3";
+
 import { store } from "@src/store.js"
 
 const DEG = Math.PI / 180;
-
-function collectFolders(root) {
-    const folders = [];
-    let depth = 0;
-
-    root.descendants().forEach(d => {
-        if (!d.children || d.depth === 0) return;
-        if (store.get("depth") > 0 && (d.depth - depth) > store.get("depth")) return;
-
-        const leaves = d.leaves();
-        const minX = d3.min(leaves, l => l.x);
-        const maxX = d3.max(leaves, l => l.x);
-
-        if (minX < 1 && maxX > 359) {
-            depth += 1;
-            return;
-        }
-
-        const radius = store.get("inner_radius") + ((d.depth - depth) * 16);
-        const arcLength = (maxX - minX) * DEG * radius;
-
-        if (arcLength < store.get("min_arc_length")) return;
-
-        folders.push({ node: d, minX, maxX, radius, arcLength, leafCount: leaves.length });
-    });
-
-    return folders;
-}
 
 class FolderOverlay extends HTMLElement {
     tooltip = null;
     element = null;
     selected = null;
     zoomed = null;
+
+    created = false;
 
     constructor() {
         super();
@@ -49,36 +25,35 @@ class FolderOverlay extends HTMLElement {
         this.onZoomOverlay = this.onZoomOverlay.bind(this);
     }
 
-    showTooltip(f) {
+    showTooltip(event, f) {
         this.tooltip
             .style("display", "block")
-            .html(`<strong>${f.node.data.key}</strong><br>${f.leafCount} arquivos`);
-        this.moveTooltip();
+            .html(`<strong>${f.key}</strong><br>${f.leafCount} arquivos`);
+
+        this.moveTooltip(event);
     }
 
-    moveTooltip() {
-        const e = d3.event;
-
+    moveTooltip(event) {
         this.tooltip
-            .style("left", (e.clientX + 14) + "px")
-            .style("top", (e.clientY + 14) + "px");
+            .style("left", (event.clientX + 14) + "px")
+            .style("top", (event.clientY + 14) + "px");
     }
 
     hideTooltip() {
         this.tooltip.style("display", "none");
     }
 
-    onSelectOverlay(node, callback) {
-        this.selected = (this.selected === node) ? null : node;
+    onSelectOverlay(id, callback) {
+        this.selected = (this.selected === id) ? null : id;
 
         this.items
-            .classed("selected", f => f.node === node);
+            .classed("selected", f => f.id === this.selected);
 
         callback && callback({ selected: this.selected, isZoomed: false });
     }
 
-    onZoomOverlay(node, callback) {
-        this.zoomed = (this.zoomed === node) ? null : node;
+    onZoomOverlay(f, callback) {
+        this.zoomed = (this.zoomed === f) ? null : f;
         this.selected = null;
 
         callback && callback({ selected: this.selected, isZoomed: true });
@@ -92,6 +67,9 @@ class FolderOverlay extends HTMLElement {
     }
 
     create({ canvas, onPaint }) {
+        if (this.created)
+            return;
+
         const container = canvas.parentNode;
         this.container = container;
 
@@ -99,7 +77,7 @@ class FolderOverlay extends HTMLElement {
 
         this.clickTimer = null;
 
-        this.onClick = f => {
+        this.onClick = (event, f) => {
             this.hideTooltip();
 
             if (this.clickTimer != null)
@@ -107,19 +85,21 @@ class FolderOverlay extends HTMLElement {
 
             clearTimeout(this.clickTimer);
             this.clickTimer = setTimeout(() => {
-                this.onSelectOverlay(f.node, onPaint);
+                this.onSelectOverlay(f.id, onPaint);
                 this.clickTimer = null;
             }, this.CLICK_DELAY);
         }
-        this.onDblClick = f => {
+        this.onDblClick = (event, f) => {
             clearTimeout(this.clickTimer);
             this.hideTooltip();
-            this.onZoomOverlay(f.node, onPaint);
+            this.onZoomOverlay(f, onPaint);
             this.clickTimer = null;
         }
+
+        this.created = true;
     }
 
-    draw({ root, halfExtent }) {
+    draw({ folders, halfExtent }) {
         const size = canvas.clientWidth;
         const pxToUnit = (2 * halfExtent) / size;
 
@@ -134,7 +114,6 @@ class FolderOverlay extends HTMLElement {
         const fontSize = 9 * pxToUnit;
 
         const arc = d3.arc();
-        const folders = collectFolders(root);
 
         this.items = this.element.append("g")
             .selectAll("g.folder")
@@ -167,7 +146,7 @@ class FolderOverlay extends HTMLElement {
             .on("dblclick", this.onDblClick);
 
         this.items.filter(f => {
-            const key = f.node.data.key || "";
+            const key = f.key || "";
 
             return (key.length * 5) / f.arcLength < 1 && f.arcLength > 15;
         })
@@ -182,7 +161,7 @@ class FolderOverlay extends HTMLElement {
 
                 return `rotate(${mid}) translate(${f.radius + 8 * pxToUnit}, 0) rotate(${flip})`;
             })
-            .text(f => f.node.data.key);
+            .text(f => f.key);
     }
 }
 

@@ -5,14 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hierarchical Edge Bundling</title>
 
-    <script type="importmap">
-    {
-        "imports": {
-            "@src/": "./src/"
-        }
-    }
-    </script>
-
     <link rel="stylesheet" href="style.css">
     <script type="module" src="./src/ui/overlay.js"></script>
 
@@ -182,28 +174,30 @@
     </section>
 </main>
 
-<script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
 
 <script type="module">
 import { status, StatusType } from "./src/ui/status.js"
-import { renderVisualization } from "./src/app.js"
+import main from "./src/app.js"
 
-import { store } from "./src/store.js"
+import { store, storeDynamic } from "./src/store.js"
 
 store.set({
-    json: "examples/linus-linux/root.json",
+    data_url: new URL("examples/linus-linux/root.json", import.meta.url).toString(),
 
     // app
     scale: 2,
     show_folders: true,
     method: "radial",
     square_radius: 16,
+
     start_color: { r: 0.03, g: 0.18, b: 0.87, alpha: 0.01 },
     end_color: { r: 0.03, g: 0.18, b: 0.42, alpha: 0.50 },
     width: window.innerWidth,
     height: window.innerHeight,
-    
+
+    dpr: window.devicePixelRatio,
+
     line_width: 0.05, // px
     segments: 16,
     
@@ -215,11 +209,14 @@ store.set({
 })
 
 const diameter = Math.min(store.get("width"), store.get("height"));
-store.set({ "inner_radius": (diameter / 2) - store.get("padding") })
+store.set({ inner_radius: (diameter / 2) - store.get("padding") })
 
 const canvas = document.querySelector("canvas");
-canvas.width = diameter;
-canvas.height = diameter;
+store.set({ width: diameter, height: diameter })
+canvas.width = diameter * store.get("dpr") * store.get("scale");
+canvas.height = diameter * store.get("dpr") * store.get("scale");
+canvas.style.width = diameter + "px";
+canvas.style.height = diameter + "px";
 
 status.init({
     body: document.body,
@@ -230,16 +227,7 @@ try {
     status.set("Loading...");
     status.loading();
 
-    const response = await fetch(store.get("json"));
-
-    if (!response.ok) {
-        status.set(response.status, { type: StatusType.ERROR });
-        throw response.status;
-    }
-
-    const json = await response.json();
-    const data = json.data;
-    renderVisualization(canvas, data);
+    main(canvas);
 
     status.loadingEnd();
 } catch (error) {

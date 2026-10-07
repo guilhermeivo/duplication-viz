@@ -1,3 +1,5 @@
+import { mat4 } from "gl-matrix";
+
 const MAX_VERTICES = 2 * 1_000_000;
 
 const FOV = (45 * Math.PI) / 180;
@@ -181,8 +183,11 @@ export default class WebGL2Renderer {
     #end_color = undefined;
     #ratio = undefined;
 
-    constructor(canvas) {
+    constructor(canvas, dimension = [ 0, 0 ], dpr = 1.0) {
         this.canvas = canvas;
+        this.dwidth = dimension[0];
+        this.dheight = dimension[1];
+        this.dpr = dpr;
         this.gl = canvas.getContext("webgl2", {
             antialias: false,
             depth: false,
@@ -366,16 +371,9 @@ export default class WebGL2Renderer {
     resize() {
         const gl = this.gl;
 
-        const dpr = window.devicePixelRatio || 1;
+        const w = Math.round(this.dwidth * this.dpr * this.#scale);
+        const h = Math.round(this.dheight * this.dpr * this.#scale);
 
-        const w = Math.round(this.canvas.clientWidth * dpr * this.#scale);
-        const h = Math.round(this.canvas.clientHeight * dpr * this.#scale);
-
-        this.canvas.style.width = this.canvas.clientWidth + "px";
-        this.canvas.style.height = this.canvas.clientHeight + "px";
-
-        this.canvas.width = w;
-        this.canvas.height = h;
         this.width = w;
         this.height = h;
 
