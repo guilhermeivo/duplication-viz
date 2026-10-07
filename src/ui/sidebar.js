@@ -1,6 +1,6 @@
-import { store } from "../store.js"
-import { colorScaleFunc, objectToRgba } from "../color.js"
-import { sizeToBin } from "../data.js"
+import { store } from "@src/store.js"
+import { colorScaleFunc, objectToRgba } from "@src/color.js"
+import { sizeToBin } from "@src/data.js"
 
 (() => {
     const stepsHistogram = store.get("steps_histogram");

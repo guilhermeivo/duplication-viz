@@ -1,8 +1,8 @@
-import { status, StatusType } from "./ui/status.js"
-import { packageHierarchy, packageImports } from "./data.js"
-import getRendererClass from "./renderers/renderer.js"
+import { status, StatusType } from "@src/ui/status.js"
+import { packageHierarchy, packageImports } from "@src/data.js"
+import getRendererClass from "@src/renderers/renderer.js"
 
-import { store } from "./store.js"
+import { store } from "@src/store.js"
 
 export const formatMethods = {
     RADIAL: (context) => {
