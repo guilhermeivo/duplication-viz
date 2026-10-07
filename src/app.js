@@ -4,13 +4,16 @@ import { ProtocolTasks, ProtocolEvents } from "@worker/protocol.js";
 
 import { store, storeDynamic } from "@src/store.js"
 
+import RendererWorker from "@worker/renderer.worker.js?worker";
+
 export default function main(canvas) {
     let folders = [];
 
-    const url = new URL("./worker/renderer.worker.js", import.meta.url);
-    const worker = new Worker(
-        url, { type: "module" }
-    );
+    // const url = new URL("./worker/renderer.worker.js", import.meta.url);
+    // const worker = new Worker(
+    //     url, { type: "module" }
+    // );
+    const worker = new RendererWorker();
 
     worker.onmessage = (event) => {
         const r = event.data;
