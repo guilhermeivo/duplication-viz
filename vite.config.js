@@ -11,5 +11,6 @@ export default defineConfig({
                 new URL("./src/worker", import.meta.url)
             )
         }
-    }
+    },
+    base: "/duplication-viz/"
 });
