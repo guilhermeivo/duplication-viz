@@ -12,7 +12,7 @@ Generate the image:
 
 Run the WebGL2 visualization:
 
-    npx serve .
+    npm run build && npm run preview
 
 Then open the URL provided by serve in your browser.
 
