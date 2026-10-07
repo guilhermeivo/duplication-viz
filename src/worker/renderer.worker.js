@@ -1,8 +1,8 @@
-import { ProtocolTasks, ProtocolEvents } from "@worker/protocol.js";
+import { ProtocolTasks, ProtocolEvents } from "#worker/protocol.js";
 
-import initialize from "@worker/tasks/initialize.js"
-import update from "@worker/tasks/update.js"
-import render from "@worker/tasks/render.js"
+import initialize from "#worker/tasks/initialize.js"
+import update from "#worker/tasks/update.js"
+import render from "#worker/tasks/render.js"
 
 let renderer = null;
 let links = null;

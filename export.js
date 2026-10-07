@@ -1,10 +1,10 @@
 import { createCanvas } from "canvas";
 import fs from "node:fs";
 
-import { status, StatusType } from "./src/ui/status.js"
-import { renderVisualization } from "./src/app.js"
+import { status, StatusType } from "#src/ui/status.js"
+import { renderVisualization } from "#src/app.js"
 
-import { store } from "./src/store.js"
+import { store } from "#src/store.js"
 
 import * as d3 from "d3";
 globalThis.d3 = d3;

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-import { store } from "@src/store.js"
+import { store } from "#src/store.js"
 
 const DEG = Math.PI / 180;
 

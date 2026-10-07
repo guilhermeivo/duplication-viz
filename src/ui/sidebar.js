@@ -1,6 +1,6 @@
-import { store, storeDynamic } from "@src/store.js"
-import { colorScaleFunc, objectToRgba } from "@src/color.js"
-import { sizeToBin } from "@src/data.js"
+import { store, storeDynamic } from"#src/store.js"
+import { colorScaleFunc, objectToRgba } from "#src/color.js"
+import { sizeToBin } from "#src/data.js"
 
 (() => {
     const stepsHistogram = storeDynamic.get("steps_histogram");

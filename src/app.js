@@ -1,10 +1,10 @@
-import { status, StatusType } from "@src/ui/status.js"
+import { status, StatusType } from "#src/ui/status.js"
 
-import { ProtocolTasks, ProtocolEvents } from "@worker/protocol.js";
+import { ProtocolTasks, ProtocolEvents } from "#worker/protocol.js";
 
-import { store, storeDynamic } from "@src/store.js"
+import { store, storeDynamic } from "#src/store.js"
 
-import RendererWorker from "@worker/renderer.worker.js?worker";
+import RendererWorker from "#worker/renderer.worker.js?worker";
 
 export default function main(canvas) {
     let folders = [];

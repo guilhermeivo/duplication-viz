@@ -4,10 +4,10 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
     resolve: {
         alias: {
-            "@src": fileURLToPath(
+            "#src": fileURLToPath(
                 new URL("./src", import.meta.url)
             ),
-            "@worker": fileURLToPath(
+            "#worker": fileURLToPath(
                 new URL("./src/worker", import.meta.url)
             )
         }

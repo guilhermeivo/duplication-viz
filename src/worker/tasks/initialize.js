@@ -1,11 +1,11 @@
 import * as d3 from "d3";
 
-import update from "@worker/tasks/update.js";
+import update from "#worker/tasks/update.js";
 
-import getRendererClass from "@src/renderers/renderer.js"
-import { packageHierarchy } from "@src/data.js"
+import getRendererClass from "#src/renderers/renderer.js"
+import { packageHierarchy } from "#src/data.js"
 
-import { ProtocolEvents } from "@worker/protocol.js";
+import { ProtocolEvents } from "#worker/protocol.js";
 
 export default async function initialize({
     canvas, dpr, config, dynamic
