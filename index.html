@@ -26,18 +26,24 @@
     <aside class="left-sidebar">
         <div>
             <div class="sec">
-                <p class="title" id="folder-hierarchy"></p>
+                <h2 class="title" id="folder-hierarchy"></h2>
             </div>
 
             <div class="sec">
-                <p class="label">
+                <h3 class="label" id="duplicated-lines-label">
                     <span>Minimum number of duplicate lines</span>
-                    <span class="number" id="value-duplicated-lines"></span>
-                </p>
+                    <span
+                        class="number"
+                        id="value-duplicated-lines"
+                    ></span>
+                </h3>
 
-                <div class="histogram" id="histogram-duplicated-lines"></div>
+                <div
+                    class="histogram"
+                    id="histogram-duplicated-lines"
+                ></div>
 
-                <label for="duplicated-lines">
+                <label for="slider-duplicated-lines">
                     <input
                         type="range"
                         id="slider-duplicated-lines"
@@ -45,26 +51,32 @@
                         min="0"
                         max="23000"
                         value="90"
+                        aria-labelledby="duplicated-lines-label"
+                        aria-describedby="duplicated-lines-description"
                     />
 
-                    <p class="label">
+                    <p class="label" id="duplicated-lines-description">
                         <span class="number">0</span>
                         <span>
-                            <span class="number" id="value-max-duplicated-lines"></span>
+                            <span
+                                class="number"
+                                id="value-max-duplicated-lines"
+                            ></span>
                             lines
                         </span>
                     </p>
                 </label>
             </div>
             <div class="sec">
-                <p class="label">
-                    <span>Bundling tension (
-                        <math display="inline">
-                            <mi>β</mi>
-                        </math>
-                    )</span>
-                    <span class="number" id="value-beta-bundling"></span>
-                </p>
+                <h3 class="label" id="beta-bundling-label">
+                    <span>Bundling tension (<math display="inline">
+                        <mi>β</mi>
+                    </math>)</span>
+                    <span
+                        class="number"
+                        id="value-beta-bundling"
+                    ></span>
+                </h3>
 
                 <label for="beta-bundling">
                     <input
@@ -74,18 +86,25 @@
                         min="0"
                         max="100"
                         value="90"
+                        aria-labelledby="beta-bundling-label"
                     />
                 </label>
             </div>
             <div class="sec">
-                <p class="label">Legend</p>
+                <h3 class="label">Legend</h3>
 
-                <div id="legend"></div>
+                <div
+                    id="legend"
+                    aria-live="polite"
+                ></div>
 
                 <p class="label grid">
                     <span class="number" class="legend-start">0</span>
                     <span class="legend-center">duplicate lines</span>
-                    <span class="number legend-end" id="value-legend-max-duplicated-lines"></span>
+                    <span
+                        class="number legend-end"
+                        id="value-legend-max-duplicated-lines"
+                    ></span>
                 </p>
 
                 <p class="description">
@@ -95,16 +114,16 @@
         </div>
         <div>
             <div class="sec">
-                <p class="title">Code duplication</p>
+                <h2 class="title">Code duplication</h2>
             </div>
 
             <div class="sec">
-                <p class="label">Analyzed data</p>
+                <h3 class="label">Analyzed data</h3>
 
                 <p class="label description">
                     <span>Detector</span>
                     <span class="number">
-                        <img src="assets/gitlab.svg" alt="gitlab" width="12px" style="display: inline-block;vertical-align:middle;">
+                        <img src="assets/gitlab.svg" alt="" width="12px" style="display: inline-block;vertical-align:middle;">
                         <a href="https://gitlab.com/ccsl-usp/codev/arkanjo-tool" target="_blank" rel="noopener">
                         ArKanjo
                         </a>
@@ -112,7 +131,7 @@
                 </p>
             </div>
             <div class="sec">
-                <p class="label">How do I read it?</p>
+                <h3 class="label">How do I read it?</h3>
 
                 <p class="label description">
                     <span>Outer arc</span>
@@ -127,7 +146,7 @@
             <div class="sec">
                 <p>
                     <span>
-                        <img src="assets/github.svg" alt="github" width="12px" style="display: inline-block;vertical-align:middle;">
+                        <img src="assets/github.svg" alt="" width="12px" style="display: inline-block;vertical-align:middle;">
                         <a href="https://github.com/guilhermeivo/duplication-viz" target="_blank" rel="noopener">
                         Project source code
                         </a>
@@ -141,13 +160,26 @@
         </div>
     </aside>
 
-    <div id="container">
+    <section id="container">
+        <h1 id="visualization-title" class="visually-hidden">
+            Code duplication visualization
+        </h1>
+
         <div id="status"></div>
 
-        <canvas id="canvas"></canvas>
+        <canvas
+            id="canvas"
+            role="img"
+            aria-labelledby="visualization-title"
+            aria-describedby="visualization-description"
+        ></canvas>
+
+        <p id="visualization-description" class="visually-hidden">
+            Radial visualization of code duplication between files. Outer arcs represent folders and edges represent duplication between files.
+        </p>
 
         <folder-overlay id="overlay"></folder-overlay>
-    </div>
+    </section>
 </main>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
