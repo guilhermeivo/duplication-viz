@@ -110,6 +110,30 @@
                 </label>
             </div>
             <div class="sec">
+                <h3 class="label" id="line-width-label">
+                    <span>Line width</span>
+                    <span>
+                        <span
+                            class="number"
+                            id="value-line-width"
+                        ></span>
+                        <span>px</span>
+                    </span>
+                </h3>
+
+                <label for="line-width">
+                    <input
+                        type="range"
+                        id="slider-line-width"
+                        name="line-width"
+                        min="0"
+                        max="100"
+                        value="5"
+                        aria-labelledby="line-width-label"
+                    />
+                </label>
+            </div>
+            <div class="sec">
                 <h3 class="label">Legend</h3>
 
                 <div
@@ -223,7 +247,6 @@ store.set({
 
     dpr: window.devicePixelRatio,
 
-    line_width: 0.05, // px
     segments: 16,
     
     padding: 120,
@@ -231,6 +254,10 @@ store.set({
     arc_width: 1.0,
 
     context_type: "webgl2"
+})
+
+storeDynamic.set({
+    line_width: 0.05, // px
 })
 
 const diameter = Math.min(store.get("width"), store.get("height"));

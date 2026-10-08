@@ -103,7 +103,8 @@ export default function main(canvas) {
     storeDynamic.subscribe(async (s, prev) => {
         if (
             s.min_size !== prev.min_size ||
-            s.radial_beta !== prev.radial_beta
+            s.radial_beta !== prev.radial_beta ||
+            s.line_width !== prev.line_width
         ) {
             lastSubscribe = true;
         }

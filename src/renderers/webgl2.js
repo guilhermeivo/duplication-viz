@@ -216,6 +216,13 @@ export default class WebGL2Renderer {
 
         this.#lineWidth = value;
 
+        if (this.programInfo) {
+            this.gl.useProgram(this.programInfo.program);
+            this.gl.uniform1f(this.programInfo.uniformLocations.lineWidth, this.#lineWidth);
+
+            this.resize();
+        }
+
         return this;
     }
 

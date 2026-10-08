@@ -7,6 +7,7 @@ import { sizeToBin } from "#src/data.js"
 
     const sliderDuplicatedLines = document.querySelector("#slider-duplicated-lines");
     const sliderBetaBundling = document.querySelector("#slider-beta-bundling");
+    const sliderLineWidth = document.querySelector("#slider-line-width");
 
     function updateMinSize(minSize) {
         const valueDuplicatedLines =
@@ -58,6 +59,14 @@ import { sizeToBin } from "#src/data.js"
         )
 
         drawLegendDuplicatedLines();
+    }
+
+    function updateLineWidth(lineWidth) {
+        if (lineWidth == undefined)
+            return;
+
+        const valueLineWidth = document.querySelector("#value-line-width");
+        valueLineWidth.textContent = lineWidth;
     }
 
     function drawLegendDuplicatedLines() {
@@ -119,11 +128,11 @@ import { sizeToBin } from "#src/data.js"
 
     sliderDuplicatedLines.addEventListener("mouseup", () =>
         storeDynamic.set({ in_interaction: false })
-    )
+    );
 
     sliderBetaBundling.addEventListener("mousedown", () =>
         storeDynamic.set({ in_interaction: true })
-    )
+    );
 
     sliderBetaBundling.addEventListener("input", event =>
         storeDynamic.set({ radial_beta: Math.min(Math.max((event.target.value / 100), 0.0), 1.0) })
@@ -131,12 +140,25 @@ import { sizeToBin } from "#src/data.js"
 
     sliderBetaBundling.addEventListener("mouseup", () =>
         storeDynamic.set({ in_interaction: false })
-    )
+    );
+
+    sliderLineWidth.addEventListener("mousedown", () =>
+        storeDynamic.set({ in_interaction: true })
+    );
+
+    sliderLineWidth.addEventListener("input", event =>
+        storeDynamic.set({ line_width: event.target.value / 100 })
+    );
+
+    sliderLineWidth.addEventListener("mouseup", () =>
+        storeDynamic.set({ in_interaction: false })
+    );
 
     storeDynamic.subscribe((s, prev) => {
         if (s.min_size !== prev.min_size) updateMinSize(s.min_size);
         if (s.radial_beta !== prev.radial_beta) updateRadialBeta(s.radial_beta);
         if (s.max_duplicated_lines !== prev.max_duplicated_lines) updateMaxDuplicatedLines(s.max_duplicated_lines);
+        if (s.line_width !== prev.line_width) updateLineWidth(s.line_width);
         if (s.folder_hierarchy.length !== prev.folder_hierarchy.length) drawFolderHierarchy(s.folder_hierarchy);
         if (s.duplicated_lines_histogram !== prev.duplicated_lines_histogram) drawHistogramDuplicateLines();
     });
@@ -144,6 +166,7 @@ import { sizeToBin } from "#src/data.js"
     updateMinSize(storeDynamic.get("min_size"));
     updateRadialBeta(storeDynamic.get("radial_beta"));
     updateMaxDuplicatedLines(storeDynamic.get("max_duplicated_lines"));
+    updateLineWidth(storeDynamic.get("line_width"));
 
     drawLegendDuplicatedLines();
     drawFolderHierarchy(storeDynamic.get("folder_hierarchy"));

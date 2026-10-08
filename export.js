@@ -35,7 +35,6 @@ store.set({
 
     dpr: 1,
     
-    line_width: 0.05, // px
     segments: 16,
     
     padding: 120,
@@ -43,6 +42,10 @@ store.set({
     arc_width: 1.0,
 
     context_type: "2d" // Canvas 2D
+})
+
+storeDynamic.set({
+    line_width: 0.05, // px
 })
 
 const diameter = Math.min(store.get("width"), store.get("height"));

@@ -36,7 +36,7 @@ export default async function initialize({
 
     const renderer = new Renderer(canvas, [ config.width, config.height ], dpr)
         .setSegments(config.segments)
-        .setLineWidth(config.line_width)
+        .setLineWidth(dynamic.line_width)
         .setColors([ config.start_color, config.end_color ])
         .setScale(config.scale)
         .setMinSize(dynamic.min_size)

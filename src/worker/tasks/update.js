@@ -149,6 +149,8 @@ export default async function update({
     
     // update min-lines
     renderer.setMinSize(dynamic.min_size);
+
+    renderer.setLineWidth(dynamic.line_width);
     
     const cluster = d3.cluster()
         .size([360, config.inner_radius]);

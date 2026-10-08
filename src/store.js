@@ -72,6 +72,7 @@ export const storeDynamic = createStore({
     // app
     radial_beta: 0.9,
     min_size: 0,
+    line_width: 0.05, // px
 
     min_duplicated_lines: 0,
     max_duplicated_lines: undefined,
